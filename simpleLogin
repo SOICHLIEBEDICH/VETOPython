@@ -1,0 +1,127 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Dec  29  14:12 2018
+@author:ZCXNB
+"""
+import tkinter as tk
+import tkinter.messagebox
+import pickle
+
+#窗口
+window = tk.Tk()
+window.title('欢迎来到DOTA2世界')
+window.geometry('450x300')
+#放置画布
+canvas = tk.Canvas(window, height=300, width=450)
+imagefile = tk.PhotoImage(file='f:timg.gif')
+image = canvas.create_image(0, 0, anchor='nw', image=imagefile)
+canvas.pack(side='top')
+#标签 用户名 密码
+tk.Label(window, text='英雄：').place(x=100, y=150)
+tk.Label(window, text='通行证：').place(x=100, y=190)
+#用户名输入框
+var_hero_name = tk.StringVar()
+entry_hero_name = tk.Entry(window, textvariable=var_hero_name)
+entry_hero_name.place(x=160, y=150)
+#密码输入框
+var_hero_pwd = tk.StringVar()
+entry_hero_pwd = tk.Entry(window, textvariable=var_hero_pwd, show='*')
+entry_hero_pwd.place(x=160, y=190)
+
+#登录函数
+def hero_log_in():
+    #输入框获取用户名密码
+    hero_name = var_hero_name.get()
+    hero_pwd = var_hero_pwd.get()
+    #从本地字典获取用户信息，如果没有就新建本地数据库
+    try:
+        with open('hero_info.pickle', 'rb') as hero_file:
+            heros_info = pickle.load(hero_file)
+    except FileNotFoundError:
+        with open('hero_info.pickle', 'wb') as hero_file:
+            heros_info = {'admin':'admin'}
+            pickle.dump(heros_info, hero_file)
+    #判断用户名和密码是否匹配
+    if hero_name in heros_info:
+        if hero_pwd == heros_info[hero_name]:
+            tk.messagebox.showinfo(title='welcome',
+                                   message='HORNORED ME!'+ hero_name)
+        else:
+            tk.messagebox.showerror(message='SRY! TRY AGAIN !?')
+    #用户名密码不能为空
+    elif hero_name == '' or hero_pwd == '':
+        tk.messagebox.showerror(message='英雄或通行证为空')
+    #不在数据库中弹出是否注册的框
+    else:
+        is_signup = tk.messagebox.askyesno('HORNOR', 'SIGNUP NOW !?')
+        if is_signup:
+            hero_sign_up()
+#注册函数
+def hero_sign_up():
+    #确认注册时的相应函数
+    def signtowcg():
+        #获取输入框内的内容
+        nn = new_name.get()
+        np = new_pwd.get()
+        npf = new_pwd_confirm.get()
+
+        #加载已有用户信息，没有则为空
+        try:
+            with open('hero_info.pickle', 'rb') as hero_file:
+                exist_hero_info = pickle.load(hero_file)
+        except FileNotFoundError:
+            exist_hero_info = {}
+
+            #检查用户名存在、密码为空、密码前后是否一致
+        if nn in exist_hero_info:
+            tk.messagebox.showerror('ERROR', '英雄已抵达战场')
+        elif np == '' or nn == '':
+            tk.messagebox.showerror('ERROR', '英雄或通行证为空')
+        elif np != npf:
+            tk.messagebox.showerror('EROOR', '通行证前后不一致')
+
+        #注册信息无误 则将用户名密码写入数据库
+        else:
+            exist_hero_info[nn] = np
+            with open('hero_info.pickle', 'wb') as hero_file:
+                pickle.dump(exist_hero_info, hero_file)
+            tk.messagebox.showerror('WELCOME', 'SIGNED UP')
+            #注册成功关闭注册框
+            window_sign_up.destroy()
+
+    #新建注册界面
+    window_sign_up = tk.Toplevel(window)
+    window_sign_up.geometry('350x200')
+    window_sign_up.title('SIGN UP')
+    # 用户名变量及标签、输入框
+    new_name = tk.StringVar()
+    tk.Label(window_sign_up, text='英雄名：').place(x=10, y=10)
+    tk.Entry(window_sign_up, textvariable=new_name).place(x=150,y=10)
+    #密码变量及标签、输入框
+    new_pwd = tk.StringVar()
+    tk.Label(window_sign_up, text='请输入通行证：').place(x=10,y=50)
+    tk.Entry(window_sign_up, textvariable=new_pwd,show='*').place(x=150,y=50)
+    #重复密码变量及标签、输入框
+    new_pwd_confirm = tk.StringVar()
+    tk.Label(window_sign_up, text='请再输入通行证：').place(x=10,y=90)
+    tk.Entry(window_sign_up, textvariable=new_pwd_confirm, show='*').place(x=150,y=90)
+    #确认按钮及位置
+    bt_confirm_sign_up = tk.Button(window_sign_up, text='确认注册',
+                                   command=signtowcg)
+    bt_confirm_sign_up.place(x=150,y=130)
+
+#退出函数
+def hero_sign_out():
+    window.destroy()
+
+#登录 注册按钮
+bt_login = tk.Button(window, text='LOGIN', command=hero_log_in)
+bt_login.place(x=140, y=230)
+bt_logup = tk.Button(window, text='LOGUP', command=hero_sign_up)
+bt_logup.place(x=210, y=230)
+bt_logquit = tk.Button(window, text='QUIT', command=hero_sign_out)
+bt_logquit.place(x=280, y=230)
+
+#主循环
+window.mainloop()
+
